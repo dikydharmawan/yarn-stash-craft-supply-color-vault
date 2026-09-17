@@ -22,6 +22,10 @@
 <span><b id="countEntri">0</b> entri</span>
 <span>·</span>
 <span><b id="countQty">0</b> total jumlah</span>
+<span>&middot;</span>
+<span><b id="countVal">Rp0</b> nilai</span>
+<span>&middot;</span>
+<span><b id="countM">0</b> total meter</span>
 </div>
 <div class="sum" id="summary"></div>
 </header>
@@ -45,7 +49,10 @@
 <button id="themeBtn">Mode Gelap</button>
 <button id="printBtn">Cetak</button>
 <button id="exportBtn">Ekspor</button>
+<button id="csvBtn">CSV</button>
 <button id="importBtn">Impor</button>
+<button id="dupBtn">Mirip 0</button>
+<button id="clearAllBtn">Kosongkan</button>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 </div>
 
@@ -98,10 +105,22 @@
 </div>
 </div>
 
-<label for="f-brand">Merek <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
-<input id="f-brand" placeholder="mis. DMC, Scheepjes">
+<div class="row">
+<div>
+<label for="f-length">Panjang <span class="opt">(opsional)</span></label>
+<input id="f-length" type="number" min="0" step="1" placeholder="m per satuan">
+</div>
+<div>
+<label for="f-price">Harga <span class="opt">(opsional)</span></label>
+<input id="f-price" type="number" min="0" step="1000" placeholder="Rp">
+</div>
+</div>
 
-<label for="f-notes">Catatan <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
+<label for="f-brand">Merek <span class="opt">(opsional)</span></label>
+<input id="f-brand" list="brands" placeholder="mis. DMC, Scheepjes">
+<datalist id="brands"></datalist>
+
+<label for="f-notes">Catatan <span class="opt">(opsional)</span></label>
 <textarea id="f-notes" placeholder="mis. dibeli di Edinburgh, disimpan untuk selimut bayi"></textarea>
 
 <div class="actions">

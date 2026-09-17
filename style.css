@@ -24,6 +24,7 @@ button:hover{filter:brightness(.98);transform:translateY(-1px)}button:active{tra
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:18px}
 .card{border-radius:18px;background:var(--card);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(230,215,194,.6);transition:transform .15s}
 .card:hover{transform:translateY(-3px)}
+.card.dup{outline:2px dashed var(--accent);outline-offset:3px}
 .swatch{position:relative;height:92px;--c:#8a5a44;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.14) 0 5px,rgba(255,255,255,0) 5px 10px),linear-gradient(165deg,var(--c),var(--c-dark));border-radius:17px 17px 0 0}
 .swatch span{position:absolute;right:10px;bottom:8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;color:#fff;background:rgba(0,0,0,.28);padding:2px 7px;border-radius:999px}
 .card .body{padding:14px 15px 15px;display:flex;flex-direction:column;gap:8px;flex:1}
@@ -32,9 +33,10 @@ button:hover{filter:brightness(.98);transform:translateY(-1px)}button:active{tra
 .meta{font-size:.85rem;color:var(--muted)}.meta b{color:var(--ink);font-weight:600}
 .notes{font-size:.85rem;font-style:italic;color:#9a7f64;margin:0;flex:1}
 .foot{display:flex;justify-content:flex-end}
-button.edit{border:none;background:#efe8dd;color:#7a5c3e;font:inherit;font-size:.8rem;font-weight:600;border-radius:999px;padding:6px 13px;cursor:pointer;margin-right:6px}
+button.edit,.del{border:none;font:inherit;font-size:.8rem;font-weight:600;border-radius:999px;padding:6px 13px;cursor:pointer}
+button.edit{background:#efe8dd;color:#7a5c3e;margin-right:6px}
 button.edit:hover{background:#e2d6c6}
-.del{border:none;background:#f3e6da;color:#a4583a;font:inherit;font-size:.8rem;font-weight:600;border-radius:999px;padding:6px 13px;cursor:pointer}
+.del{background:#f3e6da;color:#a4583a}
 .del:hover{background:#e7d2bd}.del.confirm{background:#a4583a;color:#fff}
 .chip{font:inherit;font-size:.75rem;font-weight:600;border-radius:999px;padding:4px 12px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
 .chip:hover{border-color:var(--accent);color:var(--ink)}.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
