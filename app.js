@@ -4,6 +4,7 @@ const TYPES=[["worsted","Worsted"],["dk","DK"],["bulky","Tebal"],["lace","Tipis"
 let items=[],filterType="",filterColor="",filterBrand="",search="",sortBy="new",editingId=null,undoItem=null,undoIndex=-1,undoTimer=null,dupOnly=false,lowOnly=false;
 const $=id=>document.getElementById(id);
 const saveUI=()=>localStorage.setItem(LS_UI,JSON.stringify({filterType,filterColor,filterBrand,search,sortBy,dupOnly,lowOnly}));
+const applyUI=u=>{filterType=u.filterType||"";filterColor=u.filterColor||"";filterBrand=u.filterBrand||"";search=u.search||"";sortBy=u.sortBy||"new";dupOnly=!!u.dupOnly;lowOnly=!!u.lowOnly;};
 const grid=$("grid"),overlay=$("overlay"),form=$("form"),filter=$("filter");
 const searchEl=$("search"),sortEl=$("sort"),summary=$("summary"),colorbar=$("colorbar");
 const toast=$("toast"),dupeHint=$("dupeHint"),dupeText=$("dupeText"),dupeForce=$("dupeForce");
@@ -45,8 +46,9 @@ function updateDupeHint(){
 }
 function visItems(c){
   const q=search.toLowerCase().trim();
-  const list=items.filter(i=>(!dupOnly||c[i.name.trim().toLowerCase()]>1)&&(!filterType||i.weight===filterType)&&(!filterColor||i.color===filterColor)&&(!filterBrand||i.brand===filterBrand)&&(!lowOnly||(+i.qty||0)<=LOW)&&(!q||`${i.name} ${i.brand||""} ${i.notes||""}`.toLowerCase().includes(q)));
-  const sorts={new:(a,b)=>b.created-a.created,old:(a,b)=>a.created-b.created,az:(a,b)=>a.name.localeCompare(b.name,"id"),za:(a,b)=>b.name.localeCompare(a.name,"id"),qty:(a,b)=>((+b.qty)||0)-((+a.qty)||0),len:(a,b)=>((+b.length||0)*((+b.qty)||1))-((+a.length||0)*((+a.qty)||1)),price:(a,b)=>((+b.price||0)*((+b.qty)||1))-((+a.price||0)*((+a.qty)||1))};
+  const list=items.filter(i=>(!dupOnly||c[i.name.trim().toLowerCase()]>1)&&(!filterType||i.weight===filterType)&&(!filterColor||i.color===filterColor)&&(!filterBrand||i.brand===filterBrand)&&(!lowOnly||(+i.qty||0)<=LOW)&&(!q||`${i.name} ${i.brand||""} ${i.notes||""} ${i.colorCode||""}`.toLowerCase().includes(q)));
+  const hueOf=h=>{const n=parseInt(h.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,cm=Math.max(r,g,b),cp=Math.min(r,g,b),d=cm-cp;if(!d)return 0;let hx=cm===r?((g-b)/d)+((g<b)?6:0):cm===g?((b-r)/d)+2:((r-g)/d)+4;return Math.round(hx*60);};
+  const sorts={new:(a,b)=>b.created-a.created,old:(a,b)=>a.created-b.created,az:(a,b)=>a.name.localeCompare(b.name,"id"),za:(a,b)=>b.name.localeCompare(a.name,"id"),qty:(a,b)=>((+b.qty)||0)-((+a.qty)||0),len:(a,b)=>((+b.length||0)*((+b.qty)||1))-((+a.length||0)*((+a.qty)||1)),price:(a,b)=>((+b.price||0)*((+b.qty)||1))-((+a.price||0)*((+a.qty)||1)),hue:(a,b)=>hueOf(a.color||"#000")-hueOf(b.color||"#000")};
   return list.sort(sorts[sortBy]||sorts.new);
 }
 function renderSummary(){
@@ -178,6 +180,7 @@ sortEl.addEventListener("change",()=>{sortBy=sortEl.value;saveUI();render();});
 filter.addEventListener("change",()=>{filterType=filter.value;saveUI();render();});
 $("dupBtn").addEventListener("click",()=>{dupOnly=!dupOnly;saveUI();render();});
 $("lowBtn").addEventListener("click",()=>{lowOnly=!lowOnly;saveUI();render();});
+$("resetBtn").addEventListener("click",()=>{search=searchEl.value="";filterType=filter.value="";filterColor="";filterBrand="";sortBy="new";sortEl.value="new";dupOnly=false;lowOnly=false;saveUI();render();});
 $("clearAllBtn").addEventListener("click",()=>{if(items.length&&confirm(`Hapus semua ${items.length} entri?`)){items=[];save();render();}});
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){closeForm();return;}
@@ -228,6 +231,10 @@ importFile.addEventListener("change",()=>{
   r.readAsText(f);importFile.value="";
 });
 load();fillSelects();
-try{const u=JSON.parse(localStorage.getItem(LS_UI))||{};filterType=u.filterType||"";filterColor=u.filterColor||"";filterBrand=u.filterBrand||"";search=u.search||"";sortBy=u.sortBy||"new";dupOnly=!!u.dupOnly;lowOnly=!!u.lowOnly;}catch(e){}
-filter.value=filterType;sortEl.value=sortBy;searchEl.value=search;
+let ui={};try{ui=JSON.parse(localStorage.getItem(LS_UI))||{};}catch(e){}
+applyUI(ui);filter.value=filterType;sortEl.value=sortBy;searchEl.value=search;
 render();
+window.addEventListener("storage",e=>{
+  if(e.key===LS_KEY){load();render();}
+  else if(e.key===LS_UI){try{applyUI(JSON.parse(e.newValue||"{}"));}catch(_){}$("filter").value=filterType;sortEl.value=sortBy;searchEl.value=search;render();}
+});
