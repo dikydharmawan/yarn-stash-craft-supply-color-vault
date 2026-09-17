@@ -30,9 +30,16 @@ button:hover{filter:brightness(.98);transform:translateY(-1px)}button:active{tra
 .card .body{padding:14px 15px 15px;display:flex;flex-direction:column;gap:8px;flex:1}
 .name{font-family:Georgia,"Times New Roman",serif;font-size:1.12rem;font-weight:600;margin:0;line-height:1.25}
 .type{align-self:flex-start;font-size:.74rem;font-weight:600;letter-spacing:.4px;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:#f0e4d3;color:#7a5c3e}
+.type.low{background:#c96a4a;color:#fff}
+.card.low{outline:1px solid rgba(201,106,74,.8);outline-offset:3px}
 .meta{font-size:.85rem;color:var(--muted)}.meta b{color:var(--ink);font-weight:600}
 .notes{font-size:.85rem;font-style:italic;color:#9a7f64;margin:0;flex:1}
-.foot{display:flex;justify-content:flex-end}
+.foot{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.foot .acts{display:flex;gap:6px;margin-left:auto}
+button.st{width:26px;height:26px;border-radius:50%;border:none;background:#efe8dd;color:#7a5c3e;font:inherit;font-size:.85rem;font-weight:700;line-height:1;padding:0;cursor:pointer}
+button.st:hover{background:#e2d6c6}
+button.copy{border:none;font:inherit;font-size:.8rem;font-weight:600;border-radius:999px;padding:6px 13px;cursor:pointer;background:#efe8dd;color:#7a5c3e}
+button.copy:hover{background:#e2d6c6}
 button.edit,.del{border:none;font:inherit;font-size:.8rem;font-weight:600;border-radius:999px;padding:6px 13px;cursor:pointer}
 button.edit{background:#efe8dd;color:#7a5c3e;margin-right:6px}
 button.edit:hover{background:#e2d6c6}
@@ -73,7 +80,8 @@ body.dark .type{background:#4a3a2e;color:#e3c9a9}
 body.dark .notes{color:#c9ac8d}
 body.dark .del{background:#4a3326;color:#e8a48c}body.dark .del.confirm{background:#c96a4a;color:#fff}
 body.dark button.edit{background:#3d322b;color:#d8c3ab}
+body.dark button.st,body.dark button.copy{background:#3d322b;color:#d8c3ab}
 body.dark .dupe{background:#3a2b1e;border-color:#6b4a2c;color:#e7c9a4}
 body.dark .empty svg{opacity:.35}body.dark .swatch span{background:rgba(0,0,0,.4)}
 @media (max-width:480px){.grid{grid-template-columns:1fr 1fr}.row{flex-direction:column}.row>div{flex:auto}}
-@media print{body{background:#fff;color:#000}.toolbar,.tools,.overlay,.toast,.hint,.sum,.del,button.edit{display:none!important}header{margin-bottom:10px}.wrap{max-width:none;padding:0}.grid{grid-template-columns:repeat(4,1fr);gap:10px}.card{box-shadow:none;border:1px solid #bbb}.card,.swatch{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media print{body{background:#fff;color:#000}.toolbar,.tools,.overlay,.toast,.hint,.sum,.del,.st,.copy,button.edit{display:none!important}header{margin-bottom:10px}.wrap{max-width:none;padding:0}.grid{grid-template-columns:repeat(4,1fr);gap:10px}.card{box-shadow:none;border:1px solid #bbb}.card,.swatch{-webkit-print-color-adjust:exact;print-color-adjust:exact}}

@@ -1,9 +1,9 @@
 "use strict";
 const LS_KEY="yarnStash.collection.v1",LS_THEME="yarnStash.theme",LS_UI="yarnStash.ui";
 const TYPES=[["worsted","Worsted"],["dk","DK"],["bulky","Tebal"],["lace","Tipis"],["fabric","Kain"],["floss","Benang Sulam"],["other","Lainnya"]];
-let items=[],filterType="",filterColor="",search="",sortBy="new",editingId=null,undoItem=null,undoIndex=-1,undoTimer=null,dupOnly=false;
+let items=[],filterType="",filterColor="",filterBrand="",search="",sortBy="new",editingId=null,undoItem=null,undoIndex=-1,undoTimer=null,dupOnly=false,lowOnly=false;
 const $=id=>document.getElementById(id);
-const saveUI=()=>localStorage.setItem(LS_UI,JSON.stringify({filterType,filterColor,search,sortBy,dupOnly}));
+const saveUI=()=>localStorage.setItem(LS_UI,JSON.stringify({filterType,filterColor,filterBrand,search,sortBy,dupOnly,lowOnly}));
 const grid=$("grid"),overlay=$("overlay"),form=$("form"),filter=$("filter");
 const searchEl=$("search"),sortEl=$("sort"),summary=$("summary"),colorbar=$("colorbar");
 const toast=$("toast"),dupeHint=$("dupeHint"),dupeText=$("dupeText"),dupeForce=$("dupeForce");
@@ -23,6 +23,7 @@ function fillSelects(){
 const typeLabel=id=>{const t=TYPES.find(x=>x[0]===id);return t?t[1]:"Lainnya";};
 const sameName=name=>{const n=String(name||"").trim().toLowerCase();return n?items.filter(i=>i.id!==editingId&&String(i.name).trim().toLowerCase()===n):[];};
 const CLOSE=48;
+const LOW=3;
 const hexDist=(a,b)=>{const ca=parseInt(a.slice(1),16),cb=parseInt(b.slice(1),16);return Math.hypot((ca>>16&255)-(cb>>16&255),(ca>>8&255)-(cb>>8&255),(ca&255)-(cb&255));};
 const nameCounts=()=>{const c={};for(const i of items)c[i.name.trim().toLowerCase()]=(c[i.name.trim().toLowerCase()]||0)+1;return c;};
 function updateDupeHint(){
@@ -44,22 +45,24 @@ function updateDupeHint(){
 }
 function visItems(c){
   const q=search.toLowerCase().trim();
-  const list=items.filter(i=>(!dupOnly||c[i.name.trim().toLowerCase()]>1)&&(!filterType||i.weight===filterType)&&(!filterColor||i.color===filterColor)&&(!q||`${i.name} ${i.brand||""} ${i.notes||""}`.toLowerCase().includes(q)));
-  const sorts={new:(a,b)=>b.created-a.created,old:(a,b)=>a.created-b.created,az:(a,b)=>a.name.localeCompare(b.name,"id"),za:(a,b)=>b.name.localeCompare(a.name,"id"),qty:(a,b)=>((+b.qty)||0)-((+a.qty)||0)};
+  const list=items.filter(i=>(!dupOnly||c[i.name.trim().toLowerCase()]>1)&&(!filterType||i.weight===filterType)&&(!filterColor||i.color===filterColor)&&(!filterBrand||i.brand===filterBrand)&&(!lowOnly||(+i.qty||0)<=LOW)&&(!q||`${i.name} ${i.brand||""} ${i.notes||""}`.toLowerCase().includes(q)));
+  const sorts={new:(a,b)=>b.created-a.created,old:(a,b)=>a.created-b.created,az:(a,b)=>a.name.localeCompare(b.name,"id"),za:(a,b)=>b.name.localeCompare(a.name,"id"),qty:(a,b)=>((+b.qty)||0)-((+a.qty)||0),len:(a,b)=>((+b.length||0)*((+b.qty)||1))-((+a.length||0)*((+a.qty)||1)),price:(a,b)=>((+b.price||0)*((+b.qty)||1))-((+a.price||0)*((+a.qty)||1))};
   return list.sort(sorts[sortBy]||sorts.new);
 }
 function renderSummary(){
   summary.innerHTML="";
+  const chip=(label,on,set)=>{
+    const b=document.createElement("button");
+    b.type="button";b.className="chip"+(on?" on":"");b.textContent=label;
+    b.addEventListener("click",()=>{set();saveUI();render();});
+    summary.appendChild(b);
+  };
   const counts={};
   for(const t of TYPES)counts[t[0]]=0;
   for(const i of items)counts[i.weight]=(counts[i.weight]||0)+1;
-  for(const t of TYPES){
-    if(!counts[t[0]])continue;
-    const b=document.createElement("button");
-    b.type="button";b.className="chip"+(filterType===t[0]?" on":"");b.textContent=`${t[1]} ${counts[t[0]]}`;
-    b.addEventListener("click",()=>{filterType=filter.value=(filterType===t[0])?"":t[0];saveUI();render();});
-    summary.appendChild(b);
-  }
+  for(const t of TYPES){if(!counts[t[0]])continue;chip(`${t[1]} ${counts[t[0]]}`,filterType===t[0],()=>{filterType=filter.value=(filterType===t[0])?"":t[0];});}
+  const brands=[...new Set(items.map(i=>i.brand).filter(Boolean))];
+  for(const br of brands)chip(`${br} ${items.filter(i=>i.brand===br).length}`,filterBrand===br,()=>{filterBrand=filterBrand===br?"":br;});
 }
 function renderColors(){
   const used=Array.from(new Set(items.map(i=>i.color).filter(Boolean)));
@@ -80,42 +83,53 @@ function render(){
   $("countEntri").textContent=items.length;
   $("countQty").textContent=items.reduce((s,i)=>s+(+i.qty||0),0);
   $("countVal").textContent=rp(items.reduce((s,i)=>s+(+i.price||0)*(+i.qty||1),0));
+  $("countM").textContent=items.reduce((s,i)=>s+(+i.length||0)*(+i.qty||1),0).toLocaleString("id-ID");
   $("brands").innerHTML=[...new Set(items.map(i=>i.brand).filter(Boolean))].map(b=>`<option value="${esc(b)}">`).join("");
   const dupN=items.filter(i=>counts[i.name.trim().toLowerCase()]>1).length;
   $("dupBtn").textContent=`Mirip ${dupN}`;
   $("dupBtn").classList.toggle("on",dupOnly);
+  const lowN=items.filter(i=>(+i.qty||0)<=LOW).length;
+  $("lowBtn").textContent=`Menipis ${lowN}`;
+  $("lowBtn").classList.toggle("on",lowOnly);
   renderSummary();renderColors();
   if(!items.length||!vis.length){
     grid.innerHTML=EMPTY+`<p><b>${items.length?"Tidak ada bahan yang cocok.":"Simpanan masih kosong."}</b></p><p>${items.length?"Ubah pencarian atau filter.":"Mulai dengan \u201c+ Tambah Bahan\u201d."}</p></div>`;
     return;
   }
   for(const it of vis){
-    const color=it.color||"#8a5a44",code=it.colorCode||color;
+    const color=it.color||"#8a5a44",code=it.colorCode||color,low=(+it.qty||0)<=LOW;
     const card=document.createElement("div");
-    card.className="card"+(counts[it.name.trim().toLowerCase()]>1?" dup":"");
-    card.innerHTML=`<div class="swatch" style="--c:${color};--c-dark:${shade(color,.28)}"><span>${esc(code)}</span></div><div class="body"><p class="name">${esc(it.name)}</p><span class="type">${esc(typeLabel(it.weight))}</span><p class="meta"><b>${esc(it.qty||1)}</b> ${esc(it.unit||"gulungan")}${it.length?` &middot; ${esc(it.length)}m`:""}${it.price?` &middot; ${rp(it.price)}`:""}${it.brand?` &middot; ${esc(it.brand)}`:""}</p>${it.notes?`<p class="notes">${esc(it.notes)}</p>`:""}<div class="foot"><button class="edit" type="button">Edit</button><button class="del" type="button">Hapus</button></div></div>`;
-    card.querySelector(".edit").addEventListener("click",()=>openEdit(it));
-    const del=card.querySelector(".del");
-    del.addEventListener("click",()=>{
-      if(del.classList.toggle("confirm")){del.textContent="Yakin?";setTimeout(()=>{del.classList.remove("confirm");del.textContent="Hapus";},2500);}
-      else{
-        undoIndex=items.findIndex(x=>x.id===it.id);
-        undoItem=items.find(x=>x.id===it.id);
-        items=items.filter(x=>x.id!==it.id);
-        save();render();
-        clearTimeout(undoTimer);
-        toast.innerHTML=`<span>${esc(it.name)} dihapus.</span><button type="button" id="undoBtn">Urungkan</button>`;
-        toast.classList.add("show");
-        toast.querySelector("#undoBtn").addEventListener("click",()=>{
-          if(undoItem){items.splice(Math.min(undoIndex,items.length),0,undoItem);save();render();}
-          toast.classList.remove("show");undoItem=null;
-        });
-        undoTimer=setTimeout(()=>{toast.classList.remove("show");undoItem=null;},5000);
-      }
-    });
+    card.className="card"+(counts[it.name.trim().toLowerCase()]>1?" dup":"")+(low?" low":"");
+    card.dataset.id=it.id;
+    card.innerHTML=`<div class="swatch" style="--c:${color};--c-dark:${shade(color,.28)}"><span>${esc(code)}</span></div><div class="body"><p class="name">${esc(it.name)}</p><span class="type${low?" low":""}">${esc(typeLabel(it.weight))}</span><p class="meta"><b>${esc(it.qty||1)}</b> ${esc(it.unit||"gulungan")}${it.length?` &middot; ${esc(it.length)}m`:""}${it.price?` &middot; ${rp(it.price)}`:""}${it.brand?` &middot; ${esc(it.brand)}`:""}</p>${it.notes?`<p class="notes">${esc(it.notes)}</p>`:""}<div class="foot"><button class="st" type="button" data-act="minus">−</button><button class="st" type="button" data-act="plus">+</button><span class="acts"><button class="copy" type="button" data-act="dup">Salin</button><button class="edit" type="button" data-act="edit">Edit</button><button class="del" type="button" data-act="del">Hapus</button></span></div></div>`;
     grid.appendChild(card);
   }
 }
+grid.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-act]"),card=b&&b.closest(".card");
+  if(!b||!card)return;
+  const it=items.find(x=>x.id===card.dataset.id);
+  if(!it)return;
+  const act=b.dataset.act;
+  if(act==="edit"){openEdit(it);return;}
+  if(act==="plus"||act==="minus"){it.qty=Math.max(1,(+it.qty||1)+(act==="plus"?1:-1));save();render();return;}
+  if(act==="dup"){items.unshift({...it,id:uid(),created:Date.now()});save();render();showToast("Entri disalin.");return;}
+  if(act==="del"){
+    if(!b.classList.contains("confirm")){b.classList.add("confirm");b.textContent="Yakin?";setTimeout(()=>{b.classList.remove("confirm");b.textContent="Hapus";},2500);return;}
+    undoIndex=items.findIndex(x=>x.id===it.id);
+    undoItem=items.find(x=>x.id===it.id);
+    items=items.filter(x=>x.id!==it.id);
+    save();render();
+    clearTimeout(undoTimer);
+    toast.innerHTML=`<span>${esc(it.name)} dihapus.</span><button type="button" id="undoBtn">Urungkan</button>`;
+    toast.classList.add("show");
+    toast.querySelector("#undoBtn").addEventListener("click",()=>{
+      if(undoItem){items.splice(Math.min(undoIndex,items.length),0,undoItem);save();render();}
+      toast.classList.remove("show");undoItem=null;
+    });
+    undoTimer=setTimeout(()=>{toast.classList.remove("show");undoItem=null;},5000);
+  }
+});
 function openForm(){
   form.reset();editingId=null;
   $("f-color").value="#8a5a44";$("f-code").value="#8a5a44";$("f-qty").value="1";$("f-weight").value="worsted";
@@ -163,6 +177,7 @@ searchEl.addEventListener("input",()=>{search=searchEl.value;saveUI();render();}
 sortEl.addEventListener("change",()=>{sortBy=sortEl.value;saveUI();render();});
 filter.addEventListener("change",()=>{filterType=filter.value;saveUI();render();});
 $("dupBtn").addEventListener("click",()=>{dupOnly=!dupOnly;saveUI();render();});
+$("lowBtn").addEventListener("click",()=>{lowOnly=!lowOnly;saveUI();render();});
 $("clearAllBtn").addEventListener("click",()=>{if(items.length&&confirm(`Hapus semua ${items.length} entri?`)){items=[];save();render();}});
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){closeForm();return;}
@@ -213,6 +228,6 @@ importFile.addEventListener("change",()=>{
   r.readAsText(f);importFile.value="";
 });
 load();fillSelects();
-try{const u=JSON.parse(localStorage.getItem(LS_UI))||{};filterType=u.filterType||"";filterColor=u.filterColor||"";search=u.search||"";sortBy=u.sortBy||"new";dupOnly=!!u.dupOnly;}catch(e){}
+try{const u=JSON.parse(localStorage.getItem(LS_UI))||{};filterType=u.filterType||"";filterColor=u.filterColor||"";filterBrand=u.filterBrand||"";search=u.search||"";sortBy=u.sortBy||"new";dupOnly=!!u.dupOnly;lowOnly=!!u.lowOnly;}catch(e){}
 filter.value=filterType;sortEl.value=sortBy;searchEl.value=search;
 render();
