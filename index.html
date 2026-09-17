@@ -8,85 +8,110 @@
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="logo">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <circle cx="16" cy="16" r="11" fill="none" stroke="#b0653e" stroke-width="2.4"/>
-        <path d="M7 14c7-6 18-1 16 9c-2 7-14 4-14-3c0-6 8-12 16-7" fill="none" stroke="#b0653e" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="16" cy="16" r="3" fill="#b0653e"/>
-      </svg>
-      <h1>Koleksi Benang</h1>
-    </div>
-    <p class="tag">Gudang warna perlengkapan kerajinan — simpanan benang &amp; tekstil Anda, tersimpan aman di browser.</p>
-    <div class="stats">
-      <span><b id="countEntri">0</b> entri</span>
-      <span>·</span>
-      <span><b id="countQty">0</b> total jumlah</span>
-    </div>
-  </header>
+<header>
+<div class="logo">
+<svg viewBox="0 0 32 32" aria-hidden="true">
+<circle cx="16" cy="16" r="11" fill="none" stroke="#b0653e" stroke-width="2.4"/>
+<path d="M7 14c7-6 18-1 16 9c-2 7-14 4-14-3c0-6 8-12 16-7" fill="none" stroke="#b0653e" stroke-width="2.4" stroke-linecap="round"/>
+<circle cx="16" cy="16" r="3" fill="#b0653e"/>
+</svg>
+<h1>Koleksi Benang</h1>
+</div>
+<p class="tag">Gudang warna perlengkapan kerajinan — simpanan benang &amp; tekstil Anda, tersimpan aman di browser.</p>
+<div class="stats">
+<span><b id="countEntri">0</b> entri</span>
+<span>·</span>
+<span><b id="countQty">0</b> total jumlah</span>
+</div>
+<div class="sum" id="summary"></div>
+</header>
 
-  <div class="toolbar">
-    <select id="filter" aria-label="Filter berdasarkan jenis">
-      <option value="">Semua jenis</option>
-    </select>
-    <button id="openBtn" class="primary">+ Tambah Bahan</button>
-  </div>
+<div class="toolbar">
+<input id="search" type="search" placeholder="Cari nama, merek, atau catatan…" aria-label="Cari">
+<select id="filter" aria-label="Filter berdasarkan jenis">
+<option value="">Semua jenis</option>
+</select>
+<select id="sort" aria-label="Urutkan">
+<option value="new">Terbaru dulu</option>
+<option value="old">Terlama dulu</option>
+<option value="az">Nama A–Z</option>
+<option value="za">Nama Z–A</option>
+<option value="qty">Jumlah terbanyak</option>
+</select>
+<button id="openBtn" class="primary">+ Tambah Bahan</button>
+</div>
 
-  <div class="grid" id="grid"></div>
+<div class="tools">
+<button id="themeBtn">Mode Gelap</button>
+<button id="printBtn">Cetak</button>
+<button id="exportBtn">Ekspor</button>
+<button id="importBtn">Impor</button>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+</div>
 
-  <p class="hint">Data disimpan lokal di browser Anda (localStorage) — tidak ada server, tidak ada login, tidak ada API.</p>
+<div class="colorbar" id="colorbar"></div>
+
+<div class="grid" id="grid"></div>
+
+<p class="hint">Data disimpan lokal di browser Anda (localStorage) — tidak ada server, tidak ada login, tidak ada API. Ekspor dan impor berkas JSON untuk cadangan.</p>
 </div>
 
 <div class="overlay" id="overlay">
-  <form class="sheet" id="form" novalidate>
-    <h2>Tambah ke Simpanan</h2>
-    <p class="sub">Catat benang atau perlengkapan kerajinan baru.</p>
+<form class="sheet" id="form" novalidate>
+<h2 id="formTitle">Tambah ke Simpanan</h2>
+<p class="sub">Catat benang atau perlengkapan kerajinan baru.</p>
 
-    <label for="f-name">Nama bahan *</label>
-    <input id="f-name" placeholder="mis. Wol Merino, Katun DK" required>
-
-    <div class="row">
-      <div class="w-grow">
-        <label for="f-color">Warna</label>
-        <input type="color" id="f-color" value="#8a5a44">
-      </div>
-      <div class="w-grow">
-        <label for="f-code">Kode warna</label>
-        <input id="f-code" placeholder="#8a5a44">
-      </div>
-    </div>
-
-    <label for="f-weight">Berat / jenis</label>
-    <select id="f-weight"></select>
-
-    <div class="row">
-      <div>
-        <label for="f-qty">Jumlah *</label>
-        <input id="f-qty" type="number" min="1" step="1" value="1" required>
-      </div>
-      <div>
-        <label for="f-unit">Satuan</label>
-        <select id="f-unit">
-          <option>gulungan</option>
-          <option>meter</option>
-          <option>yard</option>
-          <option>biji</option>
-        </select>
-      </div>
-    </div>
-
-    <label for="f-brand">Merek <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
-    <input id="f-brand" placeholder="mis. DMC, Scheepjes">
-
-    <label for="f-notes">Catatan <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
-    <textarea id="f-notes" placeholder="mis. dibeli di Edinburgh, disimpan untuk selimut bayi"></textarea>
-
-    <div class="actions">
-      <button type="button" id="cancelBtn">Batal</button>
-      <button type="submit" class="save">Simpan</button>
-    </div>
-  </form>
+<label for="f-name">Nama bahan *</label>
+<input id="f-name" placeholder="mis. Wol Merino, Katun DK" required>
+<div id="dupeHint" class="dupe hidden">
+<p id="dupeText"></p>
+<label id="dupeForceRow" class="hidden"><input type="checkbox" id="dupeForce"> Tetap simpan sebagai entri terpisah</label>
 </div>
+
+<div class="row">
+<div class="w-grow">
+<label for="f-color">Warna</label>
+<input type="color" id="f-color" value="#8a5a44">
+</div>
+<div class="w-grow">
+<label for="f-code">Kode warna</label>
+<input id="f-code" placeholder="#8a5a44">
+</div>
+</div>
+
+<label for="f-weight">Berat / jenis</label>
+<select id="f-weight"></select>
+
+<div class="row">
+<div>
+<label for="f-qty">Jumlah *</label>
+<input id="f-qty" type="number" min="1" step="1" value="1" required>
+</div>
+<div>
+<label for="f-unit">Satuan</label>
+<select id="f-unit">
+<option>gulungan</option>
+<option>meter</option>
+<option>yard</option>
+<option>biji</option>
+</select>
+</div>
+</div>
+
+<label for="f-brand">Merek <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
+<input id="f-brand" placeholder="mis. DMC, Scheepjes">
+
+<label for="f-notes">Catatan <span style="text-transform:none;color:var(--muted);font-weight:400">(opsional)</span></label>
+<textarea id="f-notes" placeholder="mis. dibeli di Edinburgh, disimpan untuk selimut bayi"></textarea>
+
+<div class="actions">
+<button type="button" id="cancelBtn">Batal</button>
+<button type="submit" class="save" id="submitTxt">Simpan</button>
+</div>
+</form>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script src="app.js"></script>
 </body>
